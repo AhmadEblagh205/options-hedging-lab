@@ -1,0 +1,50 @@
+{
+  "asian_plain": {
+    "price": 6.5316,
+    "se": 0.04958
+  },
+  "asian_control_variate": {
+    "price": 6.5004,
+    "se": 0.001666
+  },
+  "se_reduction_factor": 29.8,
+  "barrier": {
+    "continuous_closed_form": 10.1239,
+    "discrete_mc_by_intervals": {
+      "4": {
+        "price": 10.8761,
+        "se": 0.0722
+      },
+      "12": {
+        "price": 10.751,
+        "se": 0.0728
+      },
+      "52": {
+        "price": 10.5713,
+        "se": 0.0728
+      },
+      "252": {
+        "price": 10.3519,
+        "se": 0.073
+      }
+    },
+    "brownian_bridge_by_intervals": {
+      "4": {
+        "price": 9.9976,
+        "se": 0.0708
+      },
+      "12": {
+        "price": 9.9996,
+        "se": 0.0712
+      },
+      "52": {
+        "price": 10.1258,
+        "se": 0.0725
+      },
+      "252": {
+        "price": 10.2244,
+        "se": 0.0729
+      }
+    }
+  }
+}

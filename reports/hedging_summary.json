@@ -1,0 +1,82 @@
+{
+  "single_seed_error_scaling_slope": -0.483,
+  "multi_seed_error_scaling": {
+    "n_seeds": 20,
+    "mean_slope": -0.4858,
+    "sd_slope": 0.0046,
+    "empirical_95pct_range": [
+      -0.4931,
+      -0.4778
+    ]
+  },
+  "optimal_rebalancing_best_n_single_seed": {
+    "0": 512,
+    "10": 256,
+    "25": 64
+  },
+  "optimal_rebalancing_robustness": {
+    "10": {
+      "best_n_by_seed": [
+        256,
+        256,
+        128,
+        128,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256
+      ],
+      "counts": {
+        "128": 2,
+        "256": 10
+      }
+    },
+    "25": {
+      "best_n_by_seed": [
+        64,
+        64,
+        64,
+        64,
+        64,
+        64,
+        64,
+        64,
+        64,
+        64,
+        64,
+        64
+      ],
+      "counts": {
+        "64": 12
+      }
+    }
+  },
+  "drift_independence": [
+    {
+      "mu": -0.1,
+      "mean_pnl": -0.005,
+      "ci95_halfwidth": 0.0258
+    },
+    {
+      "mu": 0.02,
+      "mean_pnl": 0.0181,
+      "ci95_halfwidth": 0.0272
+    },
+    {
+      "mu": 0.2,
+      "mean_pnl": -0.0389,
+      "ci95_halfwidth": 0.0247
+    }
+  ],
+  "vol_spread": {
+    "bs_price_gap": 1.9545,
+    "mean_hedge_at_realised": 1.993,
+    "sd_hedge_at_realised": 0.624,
+    "mean_hedge_at_implied": 1.9855,
+    "sd_hedge_at_implied": 0.9025
+  }
+}

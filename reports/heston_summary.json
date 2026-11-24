@@ -1,0 +1,13 @@
+{
+  "semi_closed_form": 8.1366,
+  "monte_carlo": {
+    "price": 8.1466,
+    "se": 0.0393
+  },
+  "bs_limit_check": {
+    "heston_xi_to_0": 8.916,
+    "black_scholes": 8.916
+  },
+  "feller_ratio_2kappa_theta_over_xi2": 0.444,
+  "feller_condition_satisfied": false
+}

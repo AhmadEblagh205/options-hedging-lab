@@ -1,0 +1,41 @@
+{
+  "representative_seed": {
+    "plain": {
+      "price": 10.35776,
+      "se": 0.046422,
+      "se_reduction_factor": 1.0
+    },
+    "antithetic": {
+      "price": 10.40142,
+      "se": 0.03281,
+      "se_reduction_factor": 1.41
+    },
+    "control_variate": {
+      "price": 10.42755,
+      "se": 0.017709,
+      "se_reduction_factor": 2.62
+    },
+    "antithetic_plus_control": {
+      "price": 10.4449,
+      "se": 0.008795,
+      "se_reduction_factor": 5.28
+    }
+  },
+  "ten_seed_robustness": {
+    "antithetic": {
+      "mean_factor": 1.42,
+      "min_factor": 1.41,
+      "max_factor": 1.45
+    },
+    "control_variate": {
+      "mean_factor": 2.63,
+      "min_factor": 2.6,
+      "max_factor": 2.65
+    },
+    "antithetic_plus_control": {
+      "mean_factor": 5.38,
+      "min_factor": 5.31,
+      "max_factor": 5.53
+    }
+  }
+}
