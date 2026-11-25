@@ -4,136 +4,33 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-An independent derivatives laboratory built around a simple rule: **when a closed-form or known-truth benchmark exists, numerical code should have to earn the right to be trusted.** The repository links Black-Scholes, CRR trees, Monte Carlo, implied volatility, American exercise, exotic options, Heston stochastic volatility and discrete delta hedging through tests and controlled simulations.
+I built this as an independent set of derivatives pricing and hedging experiments. Wherever a closed-form answer exists, I check the numerical code against it. The code links Black-Scholes, CRR trees, Monte Carlo, implied volatility, American exercise, exotic options, Heston stochastic volatility and discrete delta hedging.
 
-This is a simulation/methodology project. It uses **no live option-market data and reports no investment track record**.
+It is a simulation project. It uses no live option-market data and reports no investment track record.
 
-## Results I would actually defend in an interview
+## What it does
 
-### 1. The `N^-1/2` hedging-error law is robust, not a lucky seed
+- Prices European options and Greeks in closed form, and checks them against finite differences, put-call parity and the Black-Scholes PDE.
+- Prices with CRR trees (including American exercise) and Monte Carlo, with antithetic and control-variate variance reduction.
+- Simulates discrete delta hedging, with and without proportional trading costs.
+- Prices Asian and barrier options, using a Brownian-bridge correction for discrete barrier monitoring.
+- Prices under Heston stochastic volatility with a characteristic function and full-truncation Euler Monte Carlo.
 
-For frictionless discrete delta hedging, the log-log slope of P&L standard deviation against the number of rebalances should approach `-1/2`.
+## Results
 
-The original one-seed result was about `-0.48`. The v2 audit repeats the fit across 20 seeds:
+All results are from simulated data.
 
-- mean slope: **-0.4858**;
-- empirical 2.5%-97.5% range: **[-0.4931, -0.4778]**.
+- The log-log slope of hedging P&L standard deviation against the number of rebalances is -0.4858 on average over 20 seeds (2.5% to 97.5% range -0.4931 to -0.4778), against a theoretical -0.5.
+- With 128 hedge intervals, gamma-weighted variance attribution matches actual hedged P&L with correlation 0.9941 and RMSE 0.101. At 512 intervals the correlation is about 0.9987.
+- I corrected an error in the antithetic standard error, which had treated correlated paths as independent. Across ten seeds, the standard error falls by about 1.42 times (antithetic), 2.63 times (control variate) and 5.38 times (both).
+- For a down-and-out call monitored at 52 dates, the continuous closed form is 10.1239, naive discrete Monte Carlo gives 10.5713 and the Brownian-bridge estimate is 10.1258.
+- With proportional costs, 512 rebalances are best at 0 bps. At 10 bps, 256 is best in 10 of 12 seeds and 128 in 2. At 25 bps, 64 is best in all 12.
+- The geometric Asian control variate cuts the arithmetic Asian standard error by about 29.8 times.
+- Selling at 25% implied volatility into a world realising 20% gives a price gap of about 1.9545 and a mean hedged P&L of about 1.99 over 128 hedges.
 
-So the public `-0.48 vs -0.50 theoretical` result survives a much stronger robustness check.
+Figures are in `reports/figures/` and the numbers are in `reports/*.json`.
 
-![Hedging error scaling](reports/figures/hedge_error_scaling.png)
-
-### 2. A hedged option is better understood through gamma-weighted variance
-
-A simple regression of hedged P&L on realised variance gives correlation around `-0.81`, but that throws away the fact that gamma changes with spot and time.
-
-The stronger PDE attribution accumulates
-
-`0.5 * Gamma * S^2 * (implied variance - realised quadratic variation)`
-
-through the path. With 128 hedge intervals:
-
-- actual-vs-attributed P&L correlation: **0.9941**;
-- attribution RMSE: **0.101**;
-- mean actual P&L: **1.983**;
-- mean attributed P&L: **1.981**.
-
-At 512 intervals the pathwise correlation rises to about **0.9987**. This is the cleanest bridge in the repository between the Black-Scholes PDE and the economics of delta-hedged option P&L.
-
-![Gamma weighted attribution](reports/figures/gamma_variance_attribution.png)
-
-### 3. I found and fixed an antithetic-variance measurement bug
-
-The original implementation generated antithetic paths correctly but computed their standard error as if the `z` and `-z` payoffs were independent. They are deliberately correlated, so the independent sampling unit is the **pair average**.
-
-After correcting the uncertainty calculation, equal-trajectory benchmarks across ten random seeds show mean standard-error reductions of approximately:
-
-- antithetic only: **1.42x**;
-- terminal-stock control variate: **2.63x**;
-- antithetic + control variate: **5.38x**.
-
-So the old claim that antithetics “do essentially nothing” is retired; it was an artefact of the wrong standard-error calculation.
-
-![Variance reduction](reports/figures/variance_reduction.png)
-
-### 4. Barrier bias can be corrected without brute-force time stepping
-
-A discretely monitored down-and-out simulation misses barrier crossings between dates and therefore prices above the continuously monitored contract.
-
-V2 adds a **Brownian-bridge survival correction**. At 52 simulated intervals in the default experiment:
-
-- continuous closed form: **10.1239**;
-- naive discrete Monte Carlo: **10.5713**;
-- Brownian-bridge estimate: **10.1258**.
-
-The exact Monte Carlo value varies with seed; the important result is structural: conditional crossing probabilities remove most monitoring-grid bias under GBM.
-
-![Barrier bridge correction](reports/figures/barrier_bridge.png)
-
-### 5. Trading costs create an interior hedge frequency
-
-With no trading cost, finer rebalancing reduces discretisation risk. Once a proportional fee is paid on every hedge trade, terminal-P&L RMSE becomes U-shaped.
-
-In the default parameterisation:
-
-- **0 bps:** best grid is the finest tested, 512 rebalances;
-- **10 bps:** 256 is best in 10/12 random seeds and 128 in 2/12;
-- **25 bps:** 64 is best in 12/12 seeds.
-
-Those are controlled-model results, not execution recommendations.
-
-![Optimal rebalancing](reports/figures/optimal_rebalancing.png)
-
-## The validation stack
-
-### Black-Scholes and Greeks
-
-Closed-form prices and Greeks are cross-checked against finite differences. Put-call parity is held below `1e-10`, and the full Black-Scholes PDE residual is below roughly **4.3e-15** across the test grid.
-
-### CRR trees and American exercise
-
-European CRR prices converge to Black-Scholes. Backward induction then adds what the European closed form cannot: early exercise. The tests cover positive early-exercise premium for an in-the-money American put, zero premium for a non-dividend American call, dividend-driven call exercise, and the qualitative shape of the American-put exercise boundary.
-
-![Exercise boundary](reports/figures/exercise_boundary.png)
-
-### Asian options
-
-The arithmetic Asian call uses its discretely monitored geometric sibling as a control variate. In the default experiment the standard error falls by about **29.8x** while the price remains statistically consistent with the plain simulation.
-
-### Implied volatility
-
-The Black-Scholes inversion is bracketed and checks European no-arbitrage bounds before solving. Impossible prices now fail loudly rather than returning a misleading endpoint. A two-regime controlled world generates a smile because the return distribution is not Black-Scholes lognormal.
-
-### Heston stochastic volatility
-
-A characteristic-function price is checked against full-truncation Euler Monte Carlo and against the Black-Scholes limit as vol-of-vol approaches zero. Correlation controls skew in the synthetic smile.
-
-The demonstration parameters have Feller ratio `2*kappa*theta/xi^2 = 0.444`, so the sufficient Feller condition is not met; handling the variance boundary in simulation therefore matters rather than being decorative.
-
-![Heston smile](reports/figures/heston_smile.png)
-
-## Volatility mismatch and drift
-
-Selling at 25% implied volatility in a world realising 20% gives a Black-Scholes price gap of about **1.9545**. With 128 hedges, the mean simulated P&L is about **1.99** whether delta is computed using realised or implied volatility, although the implied-vol hedge has materially more pathwise dispersion.
-
-When sale, realised and hedge volatility all agree, changing physical drift from `-10%` to `+20%` has little effect on mean hedge P&L relative to sampling/discretisation noise. Directional exposure has largely been hedged away; the remaining experiment is principally about volatility and discretisation.
-
-![Volatility capture](reports/figures/vol_capture.png)
-
-## Repository map
-
-- `src/black_scholes.py` — European prices and Greeks
-- `src/binomial.py` — CRR pricing and American exercise
-- `src/monte_carlo.py` — MC pricing, antithetics, control variates
-- `src/implied_vol.py` — bounded implied-volatility inversion and mixture smile
-- `src/hedging.py` — discrete hedge simulator, trading costs and robustness study
-- `src/exotics.py` — Asian options and barrier/Brownian-bridge experiment
-- `src/heston.py` — semi-closed Heston pricing and full-truncation MC
-- `src/attribution.py` — PDE identity and gamma-weighted P&L attribution
-- `docs/METHODOLOGY.md` — equations, assumptions and claim boundaries
-- `tests/` — analytical, numerical and defensibility regressions
-
-## Reproduce
+## How to run
 
 ```bash
 pip install -r requirements.txt
@@ -146,7 +43,23 @@ python src/attribution.py
 python src/boundary_figure.py
 ```
 
-The current suite contains **23 passing tests**.
+The suite has 23 tests.
+
+## Repository layout
+
+- `src/black_scholes.py`: European prices and Greeks.
+- `src/binomial.py`: CRR pricing and American exercise.
+- `src/monte_carlo.py`: Monte Carlo pricing, antithetics and control variates.
+- `src/implied_vol.py`: bounded implied volatility inversion and a mixture smile.
+- `src/hedging.py`: discrete hedge simulator and trading costs.
+- `src/exotics.py`: Asian options and the barrier bridge experiment.
+- `src/heston.py`: Heston pricing and Monte Carlo.
+- `src/attribution.py`: gamma-weighted P&L attribution.
+- `docs/METHODOLOGY.md`: equations and assumptions.
+
+## Notes
+
+The Heston demonstration parameters have a Feller ratio of 0.444, so the Feller condition is not met and the variance boundary handling matters. The implied volatility solver rejects prices outside the no-arbitrage bounds. The trading-cost results come from the model and are not execution advice.
 
 ## Licence
 

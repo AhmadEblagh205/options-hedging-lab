@@ -174,3 +174,13 @@ It does **not** support claims about:
 - profitable option trading;
 - production execution costs;
 - empirical option-market forecasting.
+
+
+## Notes moved from the README
+
+- Hedging slope: the original one-seed fit was about -0.48. Over 20 seeds the mean is -0.4858 with a 2.5% to 97.5% range of [-0.4931, -0.4778].
+- Gamma attribution at 128 intervals: correlation 0.9941, RMSE 0.101, mean actual P&L 1.983, mean attributed P&L 1.981. A plain regression of hedged P&L on realised variance gives a correlation of about -0.81.
+- Antithetic bug: the standard error treated the z and -z payoffs as independent. The sampling unit is the pair average. The earlier claim that antithetics do essentially nothing came from that error.
+- Barrier at 52 intervals: continuous closed form 10.1239, naive discrete Monte Carlo 10.5713, Brownian-bridge estimate 10.1258.
+- Volatility mismatch: selling at 25% implied volatility in a world realising 20% gives a price gap of about 1.9545 and a mean hedged P&L of about 1.99 over 128 hedges, whether delta uses realised or implied volatility (the implied-volatility hedge has more pathwise dispersion). With sale, realised and hedge volatility equal, changing drift from -10% to +20% has little effect on mean hedged P&L.
+- Validation: put-call parity holds below 1e-10 and the PDE residual is below about 4.3e-15 on the test grid. Heston demonstration parameters have a Feller ratio of 0.444.
